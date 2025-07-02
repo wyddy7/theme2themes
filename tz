@@ -1,0 +1,38 @@
+Цель: обработать тему через llm и создать идеально разбитый на объяснения контент, чтобы загрузить в reelsgen и сгенерировать тиктоки. Крч - один питон файл который обращается в llm и разбивает обширную тему на подтемы + контекст для них. 
+
+язык - питон
+
+используется openai SDK
+"
+import openai
+client = openai.OpenAI(
+    api_key="your_api_key",
+    base_url="<your_proxy_base_url>" # LiteLLM Proxy is OpenAI compatible, Read More: https://docs.litellm.ai/docs/proxy/user_keys
+)
+
+response = client.chat.completions.create(
+    model="gpt-3.5-turbo", # model to send to the proxy
+    messages = [
+        {
+            "role": "user",
+            "content": "this is a test request, write a short poem"
+        }
+    ]
+)
+
+print(response)
+            
+            "
+
+- есть конфиг theme-config специальный который задает модель llm и прокси + промпты + возможность выключать шаги в промптах
+- есть env
+- есть ОДИН питон файл со всем кодом
+- в конфиге есть 
+ 
+Алгоритм работа:
+1. Пользователь в cli вводит тему и запускает код
+2. Код смотрит конфиги и берет че надо.
+3. Код обращается в llm с промптом, который в конфиге описан
+- сначала генерируется список подтем + контекст для них
+- разбивается на json результат тоже через запрос в llm но которая подешевше -> нужно две модели иметь
+- код разбивает json на подтемы и контексты и сохраняет в раздельные файлы в папке resources/{тема}/

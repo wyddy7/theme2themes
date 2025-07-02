@@ -1,0 +1,79 @@
+# Пример конфигурации Topic2Reels
+model_primary: "openrouter/x-ai/grok-3-mini"
+model_secondary: "openrouter/x-ai/grok-3-mini"
+max_subtopics: 4
+prompts:
+  generate: |
+    Сформируй список из {max_subtopics} подтем по теме "{topic}". Для каждой подтемы укажи:
+    1. Название (до 6 слов)
+    2. Краткий контекст (2–3 предложения)
+    Выводи НУМЕРОВАННЫЙ СПИСОК.
+  to_json: |
+    Преобразуй следующий список подтем в JSON-объект строго по схеме:
+    {
+      "topic": "string",
+      "subtopics": [
+        {"title": "string", "context": "string", "order": 1}
+      ]
+    }
+    В поле order сохрани исходный порядок (начиная с 1).
+  expand: |
+    На основе темы "{subtopic_title}" из общей темы "{topic}" напиши развернутое объяснение.
+    Структура:
+    **Что это такое:** кратко и ясно.
+    **Примеры:** 2–3 конкретных примера.
+    **Вывод:** лаконичное заключение / takeaway.
+    Используй Markdown, раздели секции заголовками **жирным**.
+    Ограничь ответ ровно 10 строками (включая заголовки и пустые строки). На русском
+  from_context: |
+    Ниже приведён подробный текст по теме "{topic}". Разбей его максимум на {max_subtopics} логически цельных подтем,
+    сохраняя структуру в порядке появления идей. Для каждой подтемы составь краткое пояснение (2–3 предложения),
+    годное как основа для TikTok-ролика.
+
+    Верни JSON строго по схеме:
+    {{
+      "topic": "string",
+      "subtopics": [
+        {{"title": "string", "context": "string", "order": 1}}
+      ]
+    }}
+
+    Текст контекста:
+    ---
+    {context}
+    ---
+steps:
+  generate:
+    enabled: true
+  to_json:
+    enabled: true
+  expand:
+    enabled: true
+  save_files:
+    enabled: true
+  report:
+    enabled: true
+output_mode: json  # 'json' | 'split' (legacy)
+price_per_1k_tokens:
+  gpt-4o-mini: 0.005
+  gpt-3.5-turbo-0125: 0.0015
+  x-ai/grok-3:
+    in: 0.003    # $3 / 1M input
+    out: 0.015   # $15 / 1M output
+  x-ai/grok-3-mini:
+    in: 0.0003   # $0.30 / 1M input
+    out: 0.0005  # $0.50 / 1M output
+cost_limit_usd: 0.05
+retry:
+  max_tries: 5         # максимум попыток при RateLimit/ошибках
+  backoff_base: 0.5    # базовое время задержки, сек.
+  backoff_factor: 2    # коэффициент экспоненциального роста 
+logging:
+  level_console: INFO  # INFO или DEBUG
+  level_file: DEBUG    # уровень для файла
+  json: true           # писать в json-формате
+  max_bytes: 1048576   # 1 МБ на файл
+  backup_count: 3      # хранить 3 старых файла 
+file_naming:
+  allow_unicode: true   # true = сохранять кириллицу в именах файлов 
+input_dir: input        # куда складывать сырые текстовые файлы (auto discovery) 
